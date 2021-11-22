@@ -1,80 +1,71 @@
-import {
-	FileLoader,
-	Loader
-} from 'three';
-import { opentype } from '../libs/opentype.module.min.js';
-
 /**
+ * @author gero3 / https://github.com/gero3
+ * @author tentone / https://github.com/tentone
+ * @author troy351 / https://github.com/troy351
+ *
  * Requires opentype.js to be included in the project.
  * Loads TTF files and converts them into typeface JSON that can be used directly
  * to create THREE.Font objects.
  */
 
-class TTFLoader extends Loader {
+import {
+	DefaultLoadingManager,
+	FileLoader
+} from "../../../build/three.module.js";
 
-	constructor( manager ) {
+var TTFLoader = function ( manager ) {
 
-		super( manager );
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+	this.reversed = false;
 
-		this.reversed = false;
+};
 
-	}
+TTFLoader.prototype = {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: TTFLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( this.manager );
+		var scope = this;
+
+		var loader = new FileLoader( this.manager );
 		loader.setPath( this.path );
 		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
 		loader.load( url, function ( buffer ) {
 
-			try {
-
-				onLoad( scope.parse( buffer ) );
-
-			} catch ( e ) {
-
-				if ( onError ) {
-
-					onError( e );
-
-				} else {
-
-					console.error( e );
-
-				}
-
-				scope.manager.itemError( url );
-
-			}
+			onLoad( scope.parse( buffer ) );
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( arraybuffer ) {
+	setPath: function ( value ) {
+
+		this.path = value;
+		return this;
+
+	},
+
+	parse: function ( arraybuffer ) {
 
 		function convert( font, reversed ) {
 
-			const round = Math.round;
+			var round = Math.round;
 
-			const glyphs = {};
-			const scale = ( 100000 ) / ( ( font.unitsPerEm || 2048 ) * 72 );
+			var glyphs = {};
+			var scale = ( 100000 ) / ( ( font.unitsPerEm || 2048 ) * 72 );
+			
+			var glyphIndexMap = font.encoding.cmap.glyphIndexMap;
+			var unicodes = Object.keys( glyphIndexMap );
 
-			const glyphIndexMap = font.encoding.cmap.glyphIndexMap;
-			const unicodes = Object.keys( glyphIndexMap );
+			for ( var i = 0; i < unicodes.length; i ++ ) {
 
-			for ( let i = 0; i < unicodes.length; i ++ ) {
-
-				const unicode = unicodes[ i ];
-				const glyph = font.glyphs.glyphs[ glyphIndexMap[ unicode ] ];
+				var unicode = unicodes[ i ];
+				var glyph = font.glyphs.glyphs[ glyphIndexMap[ unicode ] ];
 
 				if ( unicode !== undefined ) {
 
-					const token = {
+					var token = {
 						ha: round( glyph.advanceWidth * scale ),
 						x_min: round( glyph.xMin * scale ),
 						x_max: round( glyph.xMax * scale ),
@@ -144,8 +135,8 @@ class TTFLoader extends Loader {
 
 		function reverseCommands( commands ) {
 
-			const paths = [];
-			let path;
+			var paths = [];
+			var path;
 
 			commands.forEach( function ( c ) {
 
@@ -162,11 +153,11 @@ class TTFLoader extends Loader {
 
 			} );
 
-			const reversed = [];
+			var reversed = [];
 
 			paths.forEach( function ( p ) {
 
-				const result = {
+				var result = {
 					type: 'm',
 					x: p[ p.length - 1 ].x,
 					y: p[ p.length - 1 ].y
@@ -174,10 +165,10 @@ class TTFLoader extends Loader {
 
 				reversed.push( result );
 
-				for ( let i = p.length - 1; i > 0; i -- ) {
+				for ( var i = p.length - 1; i > 0; i -- ) {
 
-					const command = p[ i ];
-					const result = { type: command.type };
+					var command = p[ i ];
+					var result = { type: command.type };
 
 					if ( command.x2 !== undefined && command.y2 !== undefined ) {
 
@@ -212,10 +203,10 @@ class TTFLoader extends Loader {
 
 		}
 
-		return convert( opentype.parse( arraybuffer ), this.reversed ); // eslint-disable-line no-undef
+		return convert( opentype.parse( arraybuffer ), this.reversed );
 
 	}
 
-}
+};
 
 export { TTFLoader };

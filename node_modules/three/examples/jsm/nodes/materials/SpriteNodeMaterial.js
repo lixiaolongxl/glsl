@@ -1,20 +1,23 @@
+/**
+ * @author sunag / http://www.sunag.com.br/
+ */
+
 import { SpriteNode } from './nodes/SpriteNode.js';
 import { NodeMaterial } from './NodeMaterial.js';
 import { NodeUtils } from '../core/NodeUtils.js';
 
-class SpriteNodeMaterial extends NodeMaterial {
+function SpriteNodeMaterial() {
 
-	constructor() {
+	var node = new SpriteNode();
 
-		const node = new SpriteNode();
+	NodeMaterial.call( this, node, node );
 
-		super( node, node );
-
-		this.type = 'SpriteNodeMaterial';
-
-	}
+	this.type = "SpriteNodeMaterial";
 
 }
+
+SpriteNodeMaterial.prototype = Object.create( NodeMaterial.prototype );
+SpriteNodeMaterial.prototype.constructor = SpriteNodeMaterial;
 
 NodeUtils.addShortcuts( SpriteNodeMaterial.prototype, 'fragment', [
 	'color',

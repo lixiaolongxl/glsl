@@ -3,7 +3,7 @@ global.THREE = require("three");
 
 // Include any additional ThreeJS examples below
 require("three/examples/js/controls/OrbitControls");
-
+const Random = require("canvas-sketch-util/random");
 const canvasSketch = require("canvas-sketch");
 const glsl = require("glslify");
 const settings = {
@@ -35,11 +35,19 @@ const sketch = ({ context }) => {
 
   // Setup a geometry
   const geometry = new THREE.SphereGeometry(1, 32, 16);
+  const baseGem  = new THREE.IcosahedronGeometry(1, 1);
+  const circleGem = new THREE.CircleGeometry(1,32);
+  const points = baseGem.vertices;
+//   console.log(points);
+  
+  
 //   const geometry = new THREE.TorusGeometry(1,0.5,32, 16);
   const vertexShader = /* glsl*/ `
   varying vec2 vUv;
+  varying vec3 vPosition;
     void main() {
       vUv = uv;
+      vPosition= position;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);
     }
   `;
@@ -48,25 +56,31 @@ const sketch = ({ context }) => {
   varying vec2 vUv;
   uniform vec3 color;
   uniform float time;
+  varying vec3 vPosition;
+  uniform vec3 points[POINT_COUNT];
+  uniform mat4 modelMatrix;
+
+    float sphereRim (vec3 spherePosition) {
+        vec3 normal = normalize(spherePosition.xyz);
+        vec3 worldNormal = normalize(mat3(modelMatrix) * normal.xyz);
+        vec3 worldPosition = (modelMatrix * vec4(spherePosition, 1.0)).xyz;
+        vec3 V = normalize(cameraPosition - worldPosition);
+        float rim = 1.0 - max(dot(V, worldNormal), 0.0);
+        return pow(smoothstep(0.0, 1.0, rim), 0.5);
+    }
+
     void main() {
-        vec2 center =  vec2(0.5,0.5);
-        vec2 q = vUv;
-        q.x *=2.0;
-        vec2 pos = mod(q * 10.0, 1.0);
-        float d = distance(pos,center);
+        float dist = 1000.0;
+        for (int i = 0; i < POINT_COUNT; i++) {
+          vec3 point = points[i];
+          float curDist = distance(vPosition, point);
+          dist = min(curDist, dist);
+        }
+        float mask = step(0.15,dist);
         
-        // float mask = step(0.25 + sin(time + vUv.x * 2.0) * 0.25,d);
-
-
-        // float offset = noise(vec3(vUv.xy * 5.0,time));
-
-        // vec2 noiseInput = q * 10.0;
-
-        vec2 noiseInput = (q * 10.0);
-        float offset = noise(vec3(noiseInput.xy ,time))*0.25;
-        float mask = step(0.25 + offset ,d);
-        mask = 1.0 - mask;
-        vec3 fragColor = mix(color,vec3(1.0),mask);
+        vec3 fragColor = mix(color, vec3(1.0), mask);
+        float rim = sphereRim(vPosition);
+        fragColor += rim * 0.25;
         gl_FragColor = vec4(vec3( fragColor),1.0);
     }
   `);
@@ -75,13 +89,17 @@ const sketch = ({ context }) => {
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
+    defines:{
+        POINT_COUNT:points.length
+    },
     uniforms:{
+    points:{value:points},
       time:{value:0},
       color:{value:new THREE.Color('tomato')}
-    }
+    },
     // wireframe: true
   });
-
+ 
   // Setup a mesh with geometry + material
   const mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
@@ -98,6 +116,7 @@ const sketch = ({ context }) => {
     // Update & render your scene here
     render({ time }) {
       material.uniforms.time.value = time;
+      // material.wireframe = true;
       controls.update();
       renderer.render(scene, camera);
     },

@@ -1,15 +1,17 @@
+/**
+ * @author sunag / http://www.sunag.com.br/
+ */
+
 import { FunctionNode } from './FunctionNode.js';
 
-class ExpressionNode extends FunctionNode {
+function ExpressionNode( src, type, keywords, extensions, includes ) {
 
-	constructor( src, type, keywords, extensions, includes ) {
-
-		super( src, includes, extensions, keywords, type );
-
-	}
+	FunctionNode.call( this, src, includes, extensions, keywords, type );
 
 }
 
-ExpressionNode.prototype.nodeType = 'Expression';
+ExpressionNode.prototype = Object.create( FunctionNode.prototype );
+ExpressionNode.prototype.constructor = ExpressionNode;
+ExpressionNode.prototype.nodeType = "Expression";
 
 export { ExpressionNode };

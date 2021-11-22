@@ -1,20 +1,31 @@
-( function () {
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ *
+ */
 
-	class Line2 extends THREE.LineSegments2 {
+THREE.Line2 = function ( geometry, material ) {
 
-		constructor( geometry = new THREE.LineGeometry(), material = new THREE.LineMaterial( {
-			color: Math.random() * 0xffffff
-		} ) ) {
+	THREE.LineSegments2.call( this );
 
-			super( geometry, material );
-			this.type = 'Line2';
+	this.type = 'Line2';
 
-		}
+	this.geometry = geometry !== undefined ? geometry : new THREE.LineGeometry();
+	this.material = material !== undefined ? material : new THREE.LineMaterial( { color: Math.random() * 0xffffff } );
+
+};
+
+THREE.Line2.prototype = Object.assign( Object.create( THREE.LineSegments2.prototype ), {
+
+	constructor: THREE.Line2,
+
+	isLine2: true,
+
+	copy: function ( /* source */ ) {
+
+		// todo
+
+		return this;
 
 	}
 
-	Line2.prototype.isLine2 = true;
-
-	THREE.Line2 = Line2;
-
-} )();
+} );

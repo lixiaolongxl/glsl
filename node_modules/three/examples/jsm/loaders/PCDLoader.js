@@ -1,32 +1,43 @@
+/**
+ * @author Filipe Caixeta / http://filipecaixeta.com.br
+ * @author Mugen87 / https://github.com/Mugen87
+ *
+ * Description: A THREE loader for PCD ascii and binary files.
+ *
+ * Limitations: Compressed binary files are not supported.
+ *
+ */
+
 import {
 	BufferGeometry,
+	DefaultLoadingManager,
 	FileLoader,
 	Float32BufferAttribute,
-	Loader,
 	LoaderUtils,
 	Points,
-	PointsMaterial
-} from 'three';
+	PointsMaterial,
+	VertexColors
+} from "../../../build/three.module.js";
 
-class PCDLoader extends Loader {
+var PCDLoader = function ( manager ) {
 
-	constructor( manager ) {
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+	this.littleEndian = true;
 
-		super( manager );
+};
 
-		this.littleEndian = true;
 
-	}
+PCDLoader.prototype = {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: PCDLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( scope.manager );
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( scope.requestHeader );
-		loader.setWithCredentials( scope.withCredentials );
 		loader.load( url, function ( data ) {
 
 			try {
@@ -41,80 +52,30 @@ class PCDLoader extends Loader {
 
 				} else {
 
-					console.error( e );
+					throw e;
 
 				}
-
-				scope.manager.itemError( url );
 
 			}
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data, url ) {
+	setPath: function ( value ) {
 
-		// from https://gitlab.com/taketwo/three-pcd-loader/blob/master/decompress-lzf.js
+		this.path = value;
+		return this;
 
-		function decompressLZF( inData, outLength ) {
+	},
 
-			const inLength = inData.length;
-			const outData = new Uint8Array( outLength );
-			let inPtr = 0;
-			let outPtr = 0;
-			let ctrl;
-			let len;
-			let ref;
-			do {
-
-				ctrl = inData[ inPtr ++ ];
-				if ( ctrl < ( 1 << 5 ) ) {
-
-					ctrl ++;
-					if ( outPtr + ctrl > outLength ) throw new Error( 'Output buffer is not large enough' );
-					if ( inPtr + ctrl > inLength ) throw new Error( 'Invalid compressed data' );
-					do {
-
-						outData[ outPtr ++ ] = inData[ inPtr ++ ];
-
-					} while ( -- ctrl );
-
-				} else {
-
-					len = ctrl >> 5;
-					ref = outPtr - ( ( ctrl & 0x1f ) << 8 ) - 1;
-					if ( inPtr >= inLength ) throw new Error( 'Invalid compressed data' );
-					if ( len === 7 ) {
-
-						len += inData[ inPtr ++ ];
-						if ( inPtr >= inLength ) throw new Error( 'Invalid compressed data' );
-
-					}
-
-					ref -= inData[ inPtr ++ ];
-					if ( outPtr + len + 2 > outLength ) throw new Error( 'Output buffer is not large enough' );
-					if ( ref < 0 ) throw new Error( 'Invalid compressed data' );
-					if ( ref >= outPtr ) throw new Error( 'Invalid compressed data' );
-					do {
-
-						outData[ outPtr ++ ] = outData[ ref ++ ];
-
-					} while ( -- len + 2 );
-
-				}
-
-			} while ( inPtr < inLength );
-
-			return outData;
-
-		}
+	parse: function ( data, url ) {
 
 		function parseHeader( data ) {
 
-			const PCDheader = {};
-			const result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
-			const result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
+			var PCDheader = {};
+			var result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
+			var result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
 
 			PCDheader.data = result2[ 1 ];
 			PCDheader.headerLen = result2[ 0 ].length + result1;
@@ -184,7 +145,7 @@ class PCDLoader extends Loader {
 
 				PCDheader.count = [];
 
-				for ( let i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
+				for ( var i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
 
 					PCDheader.count.push( 1 );
 
@@ -194,9 +155,9 @@ class PCDLoader extends Loader {
 
 			PCDheader.offset = {};
 
-			let sizeSum = 0;
+			var sizeSum = 0;
 
-			for ( let i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
+			for ( var i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
 
 				if ( PCDheader.data === 'ascii' ) {
 
@@ -205,7 +166,7 @@ class PCDLoader extends Loader {
 				} else {
 
 					PCDheader.offset[ PCDheader.fields[ i ] ] = sizeSum;
-					sizeSum += PCDheader.size[ i ] * PCDheader.count[ i ];
+					sizeSum += PCDheader.size[ i ];
 
 				}
 
@@ -219,31 +180,31 @@ class PCDLoader extends Loader {
 
 		}
 
-		const textData = LoaderUtils.decodeText( new Uint8Array( data ) );
+		var textData = LoaderUtils.decodeText( new Uint8Array( data ) );
 
 		// parse header (always ascii format)
 
-		const PCDheader = parseHeader( textData );
+		var PCDheader = parseHeader( textData );
 
 		// parse data
 
-		const position = [];
-		const normal = [];
-		const color = [];
+		var position = [];
+		var normal = [];
+		var color = [];
 
 		// ascii
 
 		if ( PCDheader.data === 'ascii' ) {
 
-			const offset = PCDheader.offset;
-			const pcdData = textData.substr( PCDheader.headerLen );
-			const lines = pcdData.split( '\n' );
+			var offset = PCDheader.offset;
+			var pcdData = textData.substr( PCDheader.headerLen );
+			var lines = pcdData.split( '\n' );
 
-			for ( let i = 0, l = lines.length; i < l; i ++ ) {
+			for ( var i = 0, l = lines.length; i < l; i ++ ) {
 
 				if ( lines[ i ] === '' ) continue;
 
-				const line = lines[ i ].split( ' ' );
+				var line = lines[ i ].split( ' ' );
 
 				if ( offset.x !== undefined ) {
 
@@ -255,10 +216,10 @@ class PCDLoader extends Loader {
 
 				if ( offset.rgb !== undefined ) {
 
-					const rgb = parseFloat( line[ offset.rgb ] );
-					const r = ( rgb >> 16 ) & 0x0000ff;
-					const g = ( rgb >> 8 ) & 0x0000ff;
-					const b = ( rgb >> 0 ) & 0x0000ff;
+					var rgb = parseFloat( line[ offset.rgb ] );
+					var r = ( rgb >> 16 ) & 0x0000ff;
+					var g = ( rgb >> 8 ) & 0x0000ff;
+					var b = ( rgb >> 0 ) & 0x0000ff;
 					color.push( r / 255, g / 255, b / 255 );
 
 				}
@@ -275,60 +236,21 @@ class PCDLoader extends Loader {
 
 		}
 
-		// binary-compressed
-
-		// normally data in PCD files are organized as array of structures: XYZRGBXYZRGB
-		// binary compressed PCD files organize their data as structure of arrays: XXYYZZRGBRGB
-		// that requires a totally different parsing approach compared to non-compressed data
+		// binary
 
 		if ( PCDheader.data === 'binary_compressed' ) {
 
-			const sizes = new Uint32Array( data.slice( PCDheader.headerLen, PCDheader.headerLen + 8 ) );
-			const compressedSize = sizes[ 0 ];
-			const decompressedSize = sizes[ 1 ];
-			const decompressed = decompressLZF( new Uint8Array( data, PCDheader.headerLen + 8, compressedSize ), decompressedSize );
-			const dataview = new DataView( decompressed.buffer );
-
-			const offset = PCDheader.offset;
-
-			for ( let i = 0; i < PCDheader.points; i ++ ) {
-
-				if ( offset.x !== undefined ) {
-
-					position.push( dataview.getFloat32( ( PCDheader.points * offset.x ) + PCDheader.size[ 0 ] * i, this.littleEndian ) );
-					position.push( dataview.getFloat32( ( PCDheader.points * offset.y ) + PCDheader.size[ 1 ] * i, this.littleEndian ) );
-					position.push( dataview.getFloat32( ( PCDheader.points * offset.z ) + PCDheader.size[ 2 ] * i, this.littleEndian ) );
-
-				}
-
-				if ( offset.rgb !== undefined ) {
-
-					color.push( dataview.getUint8( ( PCDheader.points * offset.rgb ) + PCDheader.size[ 3 ] * i + 0 ) / 255.0 );
-					color.push( dataview.getUint8( ( PCDheader.points * offset.rgb ) + PCDheader.size[ 3 ] * i + 1 ) / 255.0 );
-					color.push( dataview.getUint8( ( PCDheader.points * offset.rgb ) + PCDheader.size[ 3 ] * i + 2 ) / 255.0 );
-
-				}
-
-				if ( offset.normal_x !== undefined ) {
-
-					normal.push( dataview.getFloat32( ( PCDheader.points * offset.normal_x ) + PCDheader.size[ 4 ] * i, this.littleEndian ) );
-					normal.push( dataview.getFloat32( ( PCDheader.points * offset.normal_y ) + PCDheader.size[ 5 ] * i, this.littleEndian ) );
-					normal.push( dataview.getFloat32( ( PCDheader.points * offset.normal_z ) + PCDheader.size[ 6 ] * i, this.littleEndian ) );
-
-				}
-
-			}
+			console.error( 'THREE.PCDLoader: binary_compressed files are not supported' );
+			return;
 
 		}
 
-		// binary
-
 		if ( PCDheader.data === 'binary' ) {
 
-			const dataview = new DataView( data, PCDheader.headerLen );
-			const offset = PCDheader.offset;
+			var dataview = new DataView( data, PCDheader.headerLen );
+			var offset = PCDheader.offset;
 
-			for ( let i = 0, row = 0; i < PCDheader.points; i ++, row += PCDheader.rowSize ) {
+			for ( var i = 0, row = 0; i < PCDheader.points; i ++, row += PCDheader.rowSize ) {
 
 				if ( offset.x !== undefined ) {
 
@@ -360,21 +282,21 @@ class PCDLoader extends Loader {
 
 		// build geometry
 
-		const geometry = new BufferGeometry();
+		var geometry = new BufferGeometry();
 
-		if ( position.length > 0 ) geometry.setAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
-		if ( normal.length > 0 ) geometry.setAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
-		if ( color.length > 0 ) geometry.setAttribute( 'color', new Float32BufferAttribute( color, 3 ) );
+		if ( position.length > 0 ) geometry.addAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
+		if ( normal.length > 0 ) geometry.addAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
+		if ( color.length > 0 ) geometry.addAttribute( 'color', new Float32BufferAttribute( color, 3 ) );
 
 		geometry.computeBoundingSphere();
 
 		// build material
 
-		const material = new PointsMaterial( { size: 0.005 } );
+		var material = new PointsMaterial( { size: 0.005 } );
 
 		if ( color.length > 0 ) {
 
-			material.vertexColors = true;
+			material.vertexColors = VertexColors;
 
 		} else {
 
@@ -382,10 +304,10 @@ class PCDLoader extends Loader {
 
 		}
 
-		// build point cloud
+		// build mesh
 
-		const mesh = new Points( geometry, material );
-		let name = url.split( '' ).reverse().join( '' );
+		var mesh = new Points( geometry, material );
+		var name = url.split( '' ).reverse().join( '' );
 		name = /([^\/]*)/.exec( name );
 		name = name[ 1 ].split( '' ).reverse().join( '' );
 		mesh.name = name;
@@ -394,6 +316,6 @@ class PCDLoader extends Loader {
 
 	}
 
-}
+};
 
 export { PCDLoader };

@@ -1,97 +1,114 @@
-( function () {
+/**
+ *
+ * Creator of typical test AnimationClips / KeyframeTracks
+ *
+ * @author Ben Houston / http://clara.io/
+ * @author David Sarno / http://lighthaus.us/
+ */
 
-	class AnimationClipCreator {
+THREE.AnimationClipCreator = function () {};
 
-		static CreateRotationAnimation( period, axis = 'x' ) {
+THREE.AnimationClipCreator.CreateRotationAnimation = function ( period, axis ) {
 
-			const times = [ 0, period ],
-				values = [ 0, 360 ];
-			const trackName = '.rotation[' + axis + ']';
-			const track = new THREE.NumberKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, period, [ track ] );
+	var times = [ 0, period ], values = [ 0, 360 ];
 
-		}
+	axis = axis || 'x';
+	var trackName = '.rotation[' + axis + ']';
 
-		static CreateScaleAxisAnimation( period, axis = 'x' ) {
+	var track = new THREE.NumberKeyframeTrack( trackName, times, values );
 
-			const times = [ 0, period ],
-				values = [ 0, 1 ];
-			const trackName = '.scale[' + axis + ']';
-			const track = new THREE.NumberKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, period, [ track ] );
+	return new THREE.AnimationClip( null, period, [ track ] );
 
-		}
+};
 
-		static CreateShakeAnimation( duration, shakeScale ) {
+THREE.AnimationClipCreator.CreateScaleAxisAnimation = function ( period, axis ) {
 
-			const times = [],
-				values = [],
-				tmp = new THREE.Vector3();
+	var times = [ 0, period ], values = [ 0, 1 ];
 
-			for ( let i = 0; i < duration * 10; i ++ ) {
+	axis = axis || 'x';
+	var trackName = '.scale[' + axis + ']';
 
-				times.push( i / 10 );
-				tmp.set( Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0 ).multiply( shakeScale ).toArray( values, values.length );
+	var track = new THREE.NumberKeyframeTrack( trackName, times, values );
 
-			}
+	return new THREE.AnimationClip( null, period, [ track ] );
 
-			const trackName = '.position';
-			const track = new THREE.VectorKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, duration, [ track ] );
+};
 
-		}
+THREE.AnimationClipCreator.CreateShakeAnimation = function ( duration, shakeScale ) {
 
-		static CreatePulsationAnimation( duration, pulseScale ) {
+	var times = [], values = [], tmp = new THREE.Vector3();
 
-			const times = [],
-				values = [],
-				tmp = new THREE.Vector3();
+	for ( var i = 0; i < duration * 10; i ++ ) {
 
-			for ( let i = 0; i < duration * 10; i ++ ) {
+		times.push( i / 10 );
 
-				times.push( i / 10 );
-				const scaleFactor = Math.random() * pulseScale;
-				tmp.set( scaleFactor, scaleFactor, scaleFactor ).toArray( values, values.length );
-
-			}
-
-			const trackName = '.scale';
-			const track = new THREE.VectorKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, duration, [ track ] );
-
-		}
-
-		static CreateVisibilityAnimation( duration ) {
-
-			const times = [ 0, duration / 2, duration ],
-				values = [ true, false, true ];
-			const trackName = '.visible';
-			const track = new THREE.BooleanKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, duration, [ track ] );
-
-		}
-
-		static CreateMaterialColorAnimation( duration, colors ) {
-
-			const times = [],
-				values = [],
-				timeStep = duration / colors.length;
-
-			for ( let i = 0; i <= colors.length; i ++ ) {
-
-				times.push( i * timeStep );
-				values.push( colors[ i % colors.length ] );
-
-			}
-
-			const trackName = '.material[0].color';
-			const track = new THREE.ColorKeyframeTrack( trackName, times, values );
-			return new THREE.AnimationClip( null, duration, [ track ] );
-
-		}
+		tmp.set( Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0 ).
+			multiply( shakeScale ).
+			toArray( values, values.length );
 
 	}
 
-	THREE.AnimationClipCreator = AnimationClipCreator;
+	var trackName = '.position';
 
-} )();
+	var track = new THREE.VectorKeyframeTrack( trackName, times, values );
+
+	return new THREE.AnimationClip( null, duration, [ track ] );
+
+};
+
+
+THREE.AnimationClipCreator.CreatePulsationAnimation = function ( duration, pulseScale ) {
+
+	var times = [], values = [], tmp = new THREE.Vector3();
+
+	for ( var i = 0; i < duration * 10; i ++ ) {
+
+		times.push( i / 10 );
+
+		var scaleFactor = Math.random() * pulseScale;
+		tmp.set( scaleFactor, scaleFactor, scaleFactor ).
+			toArray( values, values.length );
+
+	}
+
+	var trackName = '.scale';
+
+	var track = new THREE.VectorKeyframeTrack( trackName, times, values );
+
+	return new THREE.AnimationClip( null, duration, [ track ] );
+
+};
+
+
+THREE.AnimationClipCreator.CreateVisibilityAnimation = function ( duration ) {
+
+	var times = [ 0, duration / 2, duration ], values = [ true, false, true ];
+
+	var trackName = '.visible';
+
+	var track = new THREE.BooleanKeyframeTrack( trackName, times, values );
+
+	return new THREE.AnimationClip( null, duration, [ track ] );
+
+};
+
+
+THREE.AnimationClipCreator.CreateMaterialColorAnimation = function ( duration, colors ) {
+
+	var times = [], values = [],
+		timeStep = duration / colors.length;
+
+	for ( var i = 0; i <= colors.length; i ++ ) {
+
+		times.push( i * timeStep );
+		values.push( colors[ i % colors.length ] );
+
+	}
+
+	var trackName = '.material[0].color';
+
+	var track = new THREE.ColorKeyframeTrack( trackName, times, values );
+
+	return new THREE.AnimationClip( null, duration, [ track ] );
+
+};

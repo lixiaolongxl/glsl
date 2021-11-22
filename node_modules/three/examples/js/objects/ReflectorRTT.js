@@ -1,16 +1,13 @@
-( function () {
+/**
+ * RTT version
+ */
 
-	class ReflectorRTT extends THREE.Reflector {
+THREE.ReflectorRTT = function ( geometry, options ) {
 
-		constructor( geometry, options ) {
+	THREE.Reflector.call( this, geometry, options );
 
-			super( geometry, options );
-			this.geometry.setDrawRange( 0, 0 ); // avoid rendering geometry
+	this.geometry.setDrawRange( 0, 0 ); // avoid rendering geometry
 
-		}
+};
 
-	}
-
-	THREE.ReflectorRTT = ReflectorRTT;
-
-} )();
+THREE.ReflectorRTT.prototype = Object.create( THREE.Reflector.prototype );

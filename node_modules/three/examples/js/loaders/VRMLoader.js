@@ -1,72 +1,87 @@
-( function () {
+/**
+ * @author Takahiro / https://github.com/takahirox
+ */
 
-	//
-	// VRM is based on glTF 2.0 and VRM extension is defined
-	// in top-level json.extensions.VRM
+// VRM Specification: https://dwango.github.io/vrm/vrm_spec/
+//
+// VRM is based on glTF 2.0 and VRM extension is defined
+// in top-level json.extensions.VRM
 
-	class VRMLoader extends THREE.Loader {
+THREE.VRMLoader = ( function () {
 
-		constructor( manager ) {
+	function VRMLoader( manager ) {
 
-			if ( THREE.GLTFLoader === undefined ) {
+		if ( THREE.GLTFLoader === undefined ) {
 
-				throw new Error( 'THREE.VRMLoader: Import THREE.GLTFLoader.' );
-
-			}
-
-			super( manager );
-			this.gltfLoader = new THREE.GLTFLoader( manager );
+			throw new Error( 'THREE.VRMLoader: Import THREE.GLTFLoader.' );
 
 		}
 
-		load( url, onLoad, onProgress, onError ) {
+		this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
+		this.gltfLoader = new THREE.GLTFLoader( this.manager );
 
-			const scope = this;
+	}
+
+	VRMLoader.prototype = {
+
+		constructor: VRMLoader,
+
+		crossOrigin: 'anonymous',
+
+		load: function ( url, onLoad, onProgress, onError ) {
+
+			var scope = this;
+
 			this.gltfLoader.load( url, function ( gltf ) {
 
-				try {
-
-					scope.parse( gltf, onLoad );
-
-				} catch ( e ) {
-
-					if ( onError ) {
-
-						onError( e );
-
-					} else {
-
-						console.error( e );
-
-					}
-
-					scope.manager.itemError( url );
-
-				}
+				scope.parse( gltf, onLoad );
 
 			}, onProgress, onError );
 
-		}
+		},
 
-		setDRACOLoader( dracoLoader ) {
+		setCrossOrigin: function ( value ) {
 
-			this.gltfLoader.setDRACOLoader( dracoLoader );
+			this.glTFLoader.setCrossOrigin( value );
 			return this;
 
-		}
+		},
 
-		parse( gltf, onLoad ) {
+		setPath: function ( value ) {
 
-			// const gltfParser = gltf.parser;
-			// const gltfExtensions = gltf.userData.gltfExtensions || {};
-			// const vrmExtension = gltfExtensions.VRM || {};
+			this.glTFLoader.setPath( value );
+			return this;
+
+		},
+
+		setResourcePath: function ( value ) {
+
+			this.glTFLoader.setResourcePath( value );
+			return this;
+
+		},
+
+		setDRACOLoader: function ( dracoLoader ) {
+
+			this.glTFLoader.setDRACOLoader( dracoLoader );
+			return this;
+
+		},
+
+		parse: function ( gltf, onLoad ) {
+
+			// var gltfParser = gltf.parser;
+			// var gltfExtensions = gltf.userData.gltfExtensions || {};
+			// var vrmExtension = gltfExtensions.VRM || {};
+
 			// handle VRM Extension here
+
 			onLoad( gltf );
 
 		}
 
-	}
+	};
 
-	THREE.VRMLoader = VRMLoader;
+	return VRMLoader;
 
 } )();

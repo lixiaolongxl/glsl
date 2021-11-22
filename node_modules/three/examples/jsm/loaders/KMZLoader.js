@@ -1,64 +1,56 @@
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
 import {
+	DefaultLoadingManager,
 	FileLoader,
 	Group,
-	Loader,
 	LoadingManager
-} from 'three';
-import { ColladaLoader } from '../loaders/ColladaLoader.js';
-import * as fflate from '../libs/fflate.module.js';
+} from "../../../build/three.module.js";
+import { ColladaLoader } from "../loaders/ColladaLoader.js";
 
-class KMZLoader extends Loader {
+var KMZLoader = function ( manager ) {
 
-	constructor( manager ) {
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 
-		super( manager );
+};
 
-	}
+KMZLoader.prototype = {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: KMZLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( scope.manager );
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( scope.requestHeader );
-		loader.setWithCredentials( scope.withCredentials );
 		loader.load( url, function ( text ) {
 
-			try {
-
-				onLoad( scope.parse( text ) );
-
-			} catch ( e ) {
-
-				if ( onError ) {
-
-					onError( e );
-
-				} else {
-
-					console.error( e );
-
-				}
-
-				scope.manager.itemError( url );
-
-			}
+			onLoad( scope.parse( text ) );
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data ) {
+	setPath: function ( value ) {
+
+		this.path = value;
+		return this;
+
+	},
+
+	parse: function ( data ) {
 
 		function findFile( url ) {
 
-			for ( const path in zip ) {
+			for ( var path in zip.files ) {
 
 				if ( path.substr( - url.length ) === url ) {
 
-					return zip[ path ];
+					return zip.files[ path ];
 
 				}
 
@@ -66,16 +58,16 @@ class KMZLoader extends Loader {
 
 		}
 
-		const manager = new LoadingManager();
+		var manager = new LoadingManager();
 		manager.setURLModifier( function ( url ) {
 
-			const image = findFile( url );
+			var image = findFile( url );
 
 			if ( image ) {
 
 				console.log( 'Loading', url );
 
-				const blob = new Blob( [ image.buffer ], { type: 'application/octet-stream' } );
+				var blob = new Blob( [ image.asArrayBuffer() ], { type: 'application/octet-stream' } );
 				return URL.createObjectURL( blob );
 
 			}
@@ -86,18 +78,18 @@ class KMZLoader extends Loader {
 
 		//
 
-		const zip = fflate.unzipSync( new Uint8Array( data ) ); // eslint-disable-line no-undef
+		var zip = new JSZip( data ); // eslint-disable-line no-undef
 
-		if ( zip[ 'doc.kml' ] ) {
+		if ( zip.files[ 'doc.kml' ] ) {
 
-			const xml = new DOMParser().parseFromString( fflate.strFromU8( zip[ 'doc.kml' ] ), 'application/xml' ); // eslint-disable-line no-undef
+			var xml = new DOMParser().parseFromString( zip.files[ 'doc.kml' ].asText(), 'application/xml' );
 
-			const model = xml.querySelector( 'Placemark Model Link href' );
+			var model = xml.querySelector( 'Placemark Model Link href' );
 
 			if ( model ) {
 
-				const loader = new ColladaLoader( manager );
-				return loader.parse( fflate.strFromU8( zip[ model.textContent ] ) ); // eslint-disable-line no-undef
+				var loader = new ColladaLoader( manager );
+				return loader.parse( zip.files[ model.textContent ].asText() );
 
 			}
 
@@ -105,14 +97,14 @@ class KMZLoader extends Loader {
 
 			console.warn( 'KMZLoader: Missing doc.kml file.' );
 
-			for ( const path in zip ) {
+			for ( var path in zip.files ) {
 
-				const extension = path.split( '.' ).pop().toLowerCase();
+				var extension = path.split( '.' ).pop().toLowerCase();
 
 				if ( extension === 'dae' ) {
 
-					const loader = new ColladaLoader( manager );
-					return loader.parse( fflate.strFromU8( zip[ path ] ) ); // eslint-disable-line no-undef
+					var loader = new ColladaLoader( manager );
+					return loader.parse( zip.files[ path ].asText() );
 
 				}
 
@@ -125,6 +117,6 @@ class KMZLoader extends Loader {
 
 	}
 
-}
+};
 
 export { KMZLoader };

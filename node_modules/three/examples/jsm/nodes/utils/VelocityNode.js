@@ -1,170 +1,178 @@
-import { Vector3 } from 'three';
+/**
+ * @author sunag / http://www.sunag.com.br/
+ */
+
+import { Vector3 } from '../../../../build/three.module.js';
 
 import { Vector3Node } from '../inputs/Vector3Node.js';
 
-class VelocityNode extends Vector3Node {
+function VelocityNode( target, params ) {
 
-	constructor( target, params ) {
+	Vector3Node.call( this );
 
-		super();
+	this.params = {};
 
-		this.params = {};
+	this.velocity = new Vector3();
 
-		this.velocity = new Vector3();
+	this.setTarget( target );
+	this.setParams( params );
 
-		this.setTarget( target );
-		this.setParams( params );
+}
 
-	}
+VelocityNode.prototype = Object.create( Vector3Node.prototype );
+VelocityNode.prototype.constructor = VelocityNode;
+VelocityNode.prototype.nodeType = "Velocity";
 
-	getReadonly( /*builder*/ ) {
+VelocityNode.prototype.getReadonly = function ( /*builder*/ ) {
 
-		return false;
+	return false;
 
-	}
+};
 
-	setParams( params ) {
+VelocityNode.prototype.setParams = function ( params ) {
 
-		switch ( this.params.type ) {
+	switch ( this.params.type ) {
 
-			case 'elastic':
+		case "elastic":
 
-				delete this.moment;
+			delete this.moment;
 
-				delete this.speed;
-				delete this.springVelocity;
+			delete this.speed;
+			delete this.springVelocity;
 
-				delete this.lastVelocity;
+			delete this.lastVelocity;
 
-				break;
-
-		}
-
-		this.params = params || {};
-
-		switch ( this.params.type ) {
-
-			case 'elastic':
-
-				this.moment = new Vector3();
-
-				this.speed = new Vector3();
-				this.springVelocity = new Vector3();
-
-				this.lastVelocity = new Vector3();
-
-				break;
-
-		}
+			break;
 
 	}
 
-	setTarget( target ) {
+	this.params = params || {};
 
-		if ( this.target ) {
+	switch ( this.params.type ) {
 
-			delete this.position;
-			delete this.oldPosition;
+		case "elastic":
 
-		}
+			this.moment = new Vector3();
 
-		this.target = target;
+			this.speed = new Vector3();
+			this.springVelocity = new Vector3();
 
-		if ( target ) {
+			this.lastVelocity = new Vector3();
 
-			this.position = target.getWorldPosition( this.position || new Vector3() );
-			this.oldPosition = this.position.clone();
-
-		}
+			break;
 
 	}
 
-	updateFrameVelocity( /*frame*/ ) {
+};
 
-		if ( this.target ) {
+VelocityNode.prototype.setTarget = function ( target ) {
 
-			this.position = this.target.getWorldPosition( this.position || new Vector3() );
-			this.velocity.subVectors( this.position, this.oldPosition );
-			this.oldPosition.copy( this.position );
+	if ( this.target ) {
 
-		}
-
-	}
-
-	updateFrame( frame ) {
-
-		this.updateFrameVelocity( frame );
-
-		switch ( this.params.type ) {
-
-			case 'elastic':
-
-				// convert to real scale: 0 at 1 values
-				const deltaFps = frame.delta * ( this.params.fps || 60 );
-
-				const spring = Math.pow( this.params.spring, deltaFps ),
-					damping = Math.pow( this.params.damping, deltaFps );
-
-				// fix relative frame-rate
-				this.velocity.multiplyScalar( Math.exp( - this.params.damping * deltaFps ) );
-
-				// elastic
-				this.velocity.add( this.springVelocity );
-				this.velocity.add( this.speed.multiplyScalar( damping ).multiplyScalar( 1 - spring ) );
-
-				// speed
-				this.speed.subVectors( this.velocity, this.lastVelocity );
-
-				// spring velocity
-				this.springVelocity.add( this.speed );
-				this.springVelocity.multiplyScalar( spring );
-
-				// moment
-				this.moment.add( this.springVelocity );
-
-				// damping
-				this.moment.multiplyScalar( damping );
-
-				this.lastVelocity.copy( this.velocity );
-				this.value.copy( this.moment );
-
-				break;
-
-			default:
-
-				this.value.copy( this.velocity );
-
-		}
+		delete this.position;
+		delete this.oldPosition;
 
 	}
 
-	copy( source ) {
+	this.target = target;
 
-		super.copy( source );
+	if ( target ) {
 
-		if ( source.target ) this.setTarget( source.target );
-
-		this.setParams( source.params );
-
-		return this;
+		this.position = target.getWorldPosition( this.position || new Vector3() );
+		this.oldPosition = this.position.clone();
 
 	}
 
-	toJSON( meta ) {
+};
 
-		const data = super.toJSON( meta );
+VelocityNode.prototype.updateFrameVelocity = function ( /*frame*/ ) {
+
+	if ( this.target ) {
+
+		this.position = this.target.getWorldPosition( this.position || new Vector3() );
+		this.velocity.subVectors( this.position, this.oldPosition );
+		this.oldPosition.copy( this.position );
+
+	}
+
+};
+
+VelocityNode.prototype.updateFrame = function ( frame ) {
+
+	this.updateFrameVelocity( frame );
+
+	switch ( this.params.type ) {
+
+		case "elastic":
+
+			// convert to real scale: 0 at 1 values
+			var deltaFps = frame.delta * ( this.params.fps || 60 );
+
+			var spring = Math.pow( this.params.spring, deltaFps ),
+				damping = Math.pow( this.params.damping, deltaFps );
+
+			// fix relative frame-rate
+			this.velocity.multiplyScalar( Math.exp( - this.params.damping * deltaFps ) );
+
+			// elastic
+			this.velocity.add( this.springVelocity );
+			this.velocity.add( this.speed.multiplyScalar( damping ).multiplyScalar( 1 - spring ) );
+
+			// speed
+			this.speed.subVectors( this.velocity, this.lastVelocity );
+
+			// spring velocity
+			this.springVelocity.add( this.speed );
+			this.springVelocity.multiplyScalar( spring );
+
+			// moment
+			this.moment.add( this.springVelocity );
+
+			// damping
+			this.moment.multiplyScalar( damping );
+
+			this.lastVelocity.copy( this.velocity );
+			this.value.copy( this.moment );
+
+			break;
+
+		default:
+
+			this.value.copy( this.velocity );
+
+	}
+
+};
+
+VelocityNode.prototype.copy = function ( source ) {
+
+	Vector3Node.prototype.copy.call( this, source );
+
+	if ( source.target ) this.setTarget( source.target );
+
+	this.setParams( source.params );
+
+	return this;
+
+};
+
+VelocityNode.prototype.toJSON = function ( meta ) {
+
+	var data = this.getJSONNode( meta );
+
+	if ( ! data ) {
+
+		data = this.createJSONNode( meta );
 
 		if ( this.target ) data.target = this.target.uuid;
 
 		// clone params
 		data.params = JSON.parse( JSON.stringify( this.params ) );
 
-		return data;
-
 	}
 
-}
+	return data;
 
-VelocityNode.prototype.nodeType = 'Velocity';
+};
 
 export { VelocityNode };

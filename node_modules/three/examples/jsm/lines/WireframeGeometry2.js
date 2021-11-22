@@ -1,24 +1,39 @@
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ *
+ */
+
 import {
 	WireframeGeometry
-} from 'three';
-import { LineSegmentsGeometry } from '../lines/LineSegmentsGeometry.js';
+} from "../../../build/three.module.js";
+import { LineSegmentsGeometry } from "../lines/LineSegmentsGeometry.js";
 
-class WireframeGeometry2 extends LineSegmentsGeometry {
+var WireframeGeometry2 = function ( geometry ) {
 
-	constructor( geometry ) {
+	LineSegmentsGeometry.call( this );
 
-		super();
+	this.type = 'WireframeGeometry2';
 
-		this.type = 'WireframeGeometry2';
+	this.fromWireframeGeometry( new WireframeGeometry( geometry ) );
 
-		this.fromWireframeGeometry( new WireframeGeometry( geometry ) );
+	// set colors, maybe
 
-		// set colors, maybe
+};
+
+WireframeGeometry2.prototype = Object.assign( Object.create( LineSegmentsGeometry.prototype ), {
+
+	constructor: WireframeGeometry2,
+
+	isWireframeGeometry2: true,
+
+	copy: function ( /* source */ ) {
+
+		// todo
+
+		return this;
 
 	}
 
-}
-
-WireframeGeometry2.prototype.isWireframeGeometry2 = true;
+} );
 
 export { WireframeGeometry2 };

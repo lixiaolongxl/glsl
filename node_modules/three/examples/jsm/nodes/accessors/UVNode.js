@@ -1,56 +1,60 @@
+/**
+ * @author sunag / http://www.sunag.com.br/
+ */
+
 import { TempNode } from '../core/TempNode.js';
 import { NodeLib } from '../core/NodeLib.js';
 
-class UVNode extends TempNode {
+var vertexDict = [ 'uv', 'uv2' ],
+	fragmentDict = [ 'vUv', 'vUv2' ];
 
-	constructor( index ) {
+function UVNode( index ) {
 
-		super( 'v2', { shared: false } );
+	TempNode.call( this, 'v2', { shared: false } );
 
-		this.index = index || 0;
-
-	}
-
-	generate( builder, output ) {
-
-		builder.requires.uv[ this.index ] = true;
-
-		const uvIndex = this.index > 0 ? this.index + 1 : '';
-		const result = builder.isShader( 'vertex' ) ? 'uv' + uvIndex : 'vUv' + uvIndex;
-
-		return builder.format( result, this.getType( builder ), output );
-
-	}
-
-	copy( source ) {
-
-		super.copy( source );
-
-		this.index = source.index;
-
-		return this;
-
-	}
-
-	toJSON( meta ) {
-
-		let data = this.getJSONNode( meta );
-
-		if ( ! data ) {
-
-			data = this.createJSONNode( meta );
-
-			data.index = this.index;
-
-		}
-
-		return data;
-
-	}
+	this.index = index || 0;
 
 }
 
-UVNode.prototype.nodeType = 'UV';
+UVNode.prototype = Object.create( TempNode.prototype );
+UVNode.prototype.constructor = UVNode;
+UVNode.prototype.nodeType = "UV";
+
+UVNode.prototype.generate = function ( builder, output ) {
+
+	builder.requires.uv[ this.index ] = true;
+
+	var result = builder.isShader( 'vertex' ) ? vertexDict[ this.index ] : fragmentDict[ this.index ];
+
+	return builder.format( result, this.getType( builder ), output );
+
+};
+
+UVNode.prototype.copy = function ( source ) {
+
+	TempNode.prototype.copy.call( this, source );
+
+	this.index = source.index;
+
+	return this;
+
+};
+
+UVNode.prototype.toJSON = function ( meta ) {
+
+	var data = this.getJSONNode( meta );
+
+	if ( ! data ) {
+
+		data = this.createJSONNode( meta );
+
+		data.index = this.index;
+
+	}
+
+	return data;
+
+};
 
 NodeLib.addKeyword( 'uv', function () {
 

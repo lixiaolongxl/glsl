@@ -1,75 +1,103 @@
-( function () {
+/**
+ * @author mrdoob / http://mrdoob.com/
+ * @author marklundin / http://mark-lundin.com/
+ * @author alteredq / http://alteredqualia.com/
+ */
 
-	class ParallaxBarrierEffect {
+THREE.ParallaxBarrierEffect = function ( renderer ) {
 
-		constructor( renderer ) {
+	var _camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
 
-			const _camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+	var _scene = new THREE.Scene();
 
-			const _scene = new THREE.Scene();
+	var _stereo = new THREE.StereoCamera();
 
-			const _stereo = new THREE.StereoCamera();
+	var _params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat };
 
-			const _params = {
-				minFilter: THREE.LinearFilter,
-				magFilter: THREE.NearestFilter,
-				format: THREE.RGBAFormat
-			};
+	var _renderTargetL = new THREE.WebGLRenderTarget( 512, 512, _params );
+	var _renderTargetR = new THREE.WebGLRenderTarget( 512, 512, _params );
 
-			const _renderTargetL = new THREE.WebGLRenderTarget( 512, 512, _params );
+	var _material = new THREE.ShaderMaterial( {
 
-			const _renderTargetR = new THREE.WebGLRenderTarget( 512, 512, _params );
+		uniforms: {
 
-			const _material = new THREE.ShaderMaterial( {
-				uniforms: {
-					'mapLeft': {
-						value: _renderTargetL.texture
-					},
-					'mapRight': {
-						value: _renderTargetR.texture
-					}
-				},
-				vertexShader: [ 'varying vec2 vUv;', 'void main() {', '	vUv = vec2( uv.x, uv.y );', '	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );', '}' ].join( '\n' ),
-				fragmentShader: [ 'uniform sampler2D mapLeft;', 'uniform sampler2D mapRight;', 'varying vec2 vUv;', 'void main() {', '	vec2 uv = vUv;', '	if ( ( mod( gl_FragCoord.y, 2.0 ) ) > 1.00 ) {', '		gl_FragColor = texture2D( mapLeft, uv );', '	} else {', '		gl_FragColor = texture2D( mapRight, uv );', '	}', '}' ].join( '\n' )
-			} );
+			"mapLeft": { value: _renderTargetL.texture },
+			"mapRight": { value: _renderTargetR.texture }
 
-			const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), _material );
+		},
 
-			_scene.add( mesh );
+		vertexShader: [
 
-			this.setSize = function ( width, height ) {
+			"varying vec2 vUv;",
 
-				renderer.setSize( width, height );
-				const pixelRatio = renderer.getPixelRatio();
+			"void main() {",
 
-				_renderTargetL.setSize( width * pixelRatio, height * pixelRatio );
+			"	vUv = vec2( uv.x, uv.y );",
+			"	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
 
-				_renderTargetR.setSize( width * pixelRatio, height * pixelRatio );
+			"}"
 
-			};
+		].join( "\n" ),
 
-			this.render = function ( scene, camera ) {
+		fragmentShader: [
 
-				scene.updateMatrixWorld();
-				if ( camera.parent === null ) camera.updateMatrixWorld();
+			"uniform sampler2D mapLeft;",
+			"uniform sampler2D mapRight;",
+			"varying vec2 vUv;",
 
-				_stereo.update( camera );
+			"void main() {",
 
-				renderer.setRenderTarget( _renderTargetL );
-				renderer.clear();
-				renderer.render( scene, _stereo.cameraL );
-				renderer.setRenderTarget( _renderTargetR );
-				renderer.clear();
-				renderer.render( scene, _stereo.cameraR );
-				renderer.setRenderTarget( null );
-				renderer.render( _scene, _camera );
+			"	vec2 uv = vUv;",
 
-			};
+			"	if ( ( mod( gl_FragCoord.y, 2.0 ) ) > 1.00 ) {",
 
-		}
+			"		gl_FragColor = texture2D( mapLeft, uv );",
 
-	}
+			"	} else {",
 
-	THREE.ParallaxBarrierEffect = ParallaxBarrierEffect;
+			"		gl_FragColor = texture2D( mapRight, uv );",
 
-} )();
+			"	}",
+
+			"}"
+
+		].join( "\n" )
+
+	} );
+
+	var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), _material );
+	_scene.add( mesh );
+
+	this.setSize = function ( width, height ) {
+
+		renderer.setSize( width, height );
+
+		var pixelRatio = renderer.getPixelRatio();
+
+		_renderTargetL.setSize( width * pixelRatio, height * pixelRatio );
+		_renderTargetR.setSize( width * pixelRatio, height * pixelRatio );
+
+	};
+
+	this.render = function ( scene, camera ) {
+
+		scene.updateMatrixWorld();
+
+		if ( camera.parent === null ) camera.updateMatrixWorld();
+
+		_stereo.update( camera );
+
+		renderer.setRenderTarget( _renderTargetL );
+		renderer.clear();
+		renderer.render( scene, _stereo.cameraL );
+
+		renderer.setRenderTarget( _renderTargetR );
+		renderer.clear();
+		renderer.render( scene, _stereo.cameraR );
+
+		renderer.setRenderTarget( null );
+		renderer.render( _scene, _camera );
+
+	};
+
+};

@@ -1,67 +1,76 @@
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
 import {
 	DataTexture,
 	FloatType,
-	MathUtils,
+	Math as _Math,
 	RGBFormat,
 	ShaderMaterial,
 	UniformsUtils
-} from 'three';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
-import { DigitalGlitch } from '../shaders/DigitalGlitch.js';
+} from "../../../build/three.module.js";
+import { Pass } from "../postprocessing/Pass.js";
+import { DigitalGlitch } from "../shaders/DigitalGlitch.js";
 
-class GlitchPass extends Pass {
+var GlitchPass = function ( dt_size ) {
 
-	constructor( dt_size = 64 ) {
+	Pass.call( this );
 
-		super();
+	if ( DigitalGlitch === undefined ) console.error( "GlitchPass relies on DigitalGlitch" );
 
-		if ( DigitalGlitch === undefined ) console.error( 'THREE.GlitchPass relies on DigitalGlitch' );
+	var shader = DigitalGlitch;
+	this.uniforms = UniformsUtils.clone( shader.uniforms );
 
-		const shader = DigitalGlitch;
+	if ( dt_size == undefined ) dt_size = 64;
 
-		this.uniforms = UniformsUtils.clone( shader.uniforms );
 
-		this.uniforms[ 'tDisp' ].value = this.generateHeightmap( dt_size );
+	this.uniforms[ "tDisp" ].value = this.generateHeightmap( dt_size );
 
-		this.material = new ShaderMaterial( {
-			uniforms: this.uniforms,
-			vertexShader: shader.vertexShader,
-			fragmentShader: shader.fragmentShader
-		} );
 
-		this.fsQuad = new FullScreenQuad( this.material );
+	this.material = new ShaderMaterial( {
+		uniforms: this.uniforms,
+		vertexShader: shader.vertexShader,
+		fragmentShader: shader.fragmentShader
+	} );
 
-		this.goWild = false;
-		this.curF = 0;
-		this.generateTrigger();
+	this.fsQuad = new Pass.FullScreenQuad( this.material );
 
-	}
+	this.goWild = false;
+	this.curF = 0;
+	this.generateTrigger();
 
-	render( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+};
 
-		this.uniforms[ 'tDiffuse' ].value = readBuffer.texture;
+GlitchPass.prototype = Object.assign( Object.create( Pass.prototype ), {
+
+	constructor: GlitchPass,
+
+	render: function ( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+
+		this.uniforms[ "tDiffuse" ].value = readBuffer.texture;
 		this.uniforms[ 'seed' ].value = Math.random();//default seeding
 		this.uniforms[ 'byp' ].value = 0;
 
 		if ( this.curF % this.randX == 0 || this.goWild == true ) {
 
 			this.uniforms[ 'amount' ].value = Math.random() / 30;
-			this.uniforms[ 'angle' ].value = MathUtils.randFloat( - Math.PI, Math.PI );
-			this.uniforms[ 'seed_x' ].value = MathUtils.randFloat( - 1, 1 );
-			this.uniforms[ 'seed_y' ].value = MathUtils.randFloat( - 1, 1 );
-			this.uniforms[ 'distortion_x' ].value = MathUtils.randFloat( 0, 1 );
-			this.uniforms[ 'distortion_y' ].value = MathUtils.randFloat( 0, 1 );
+			this.uniforms[ 'angle' ].value = _Math.randFloat( - Math.PI, Math.PI );
+			this.uniforms[ 'seed_x' ].value = _Math.randFloat( - 1, 1 );
+			this.uniforms[ 'seed_y' ].value = _Math.randFloat( - 1, 1 );
+			this.uniforms[ 'distortion_x' ].value = _Math.randFloat( 0, 1 );
+			this.uniforms[ 'distortion_y' ].value = _Math.randFloat( 0, 1 );
 			this.curF = 0;
 			this.generateTrigger();
 
 		} else if ( this.curF % this.randX < this.randX / 5 ) {
 
 			this.uniforms[ 'amount' ].value = Math.random() / 90;
-			this.uniforms[ 'angle' ].value = MathUtils.randFloat( - Math.PI, Math.PI );
-			this.uniforms[ 'distortion_x' ].value = MathUtils.randFloat( 0, 1 );
-			this.uniforms[ 'distortion_y' ].value = MathUtils.randFloat( 0, 1 );
-			this.uniforms[ 'seed_x' ].value = MathUtils.randFloat( - 0.3, 0.3 );
-			this.uniforms[ 'seed_y' ].value = MathUtils.randFloat( - 0.3, 0.3 );
+			this.uniforms[ 'angle' ].value = _Math.randFloat( - Math.PI, Math.PI );
+			this.uniforms[ 'distortion_x' ].value = _Math.randFloat( 0, 1 );
+			this.uniforms[ 'distortion_y' ].value = _Math.randFloat( 0, 1 );
+			this.uniforms[ 'seed_x' ].value = _Math.randFloat( - 0.3, 0.3 );
+			this.uniforms[ 'seed_y' ].value = _Math.randFloat( - 0.3, 0.3 );
 
 		} else if ( this.goWild == false ) {
 
@@ -84,32 +93,34 @@ class GlitchPass extends Pass {
 
 		}
 
-	}
+	},
 
-	generateTrigger() {
+	generateTrigger: function () {
 
-		this.randX = MathUtils.randInt( 120, 240 );
+		this.randX = _Math.randInt( 120, 240 );
 
-	}
+	},
 
-	generateHeightmap( dt_size ) {
+	generateHeightmap: function ( dt_size ) {
 
-		const data_arr = new Float32Array( dt_size * dt_size * 3 );
-		const length = dt_size * dt_size;
+		var data_arr = new Float32Array( dt_size * dt_size * 3 );
+		var length = dt_size * dt_size;
 
-		for ( let i = 0; i < length; i ++ ) {
+		for ( var i = 0; i < length; i ++ ) {
 
-			const val = MathUtils.randFloat( 0, 1 );
+			var val = _Math.randFloat( 0, 1 );
 			data_arr[ i * 3 + 0 ] = val;
 			data_arr[ i * 3 + 1 ] = val;
 			data_arr[ i * 3 + 2 ] = val;
 
 		}
 
-		return new DataTexture( data_arr, dt_size, dt_size, RGBFormat, FloatType );
+		var texture = new DataTexture( data_arr, dt_size, dt_size, RGBFormat, FloatType );
+		texture.needsUpdate = true;
+		return texture;
 
 	}
 
-}
+} );
 
 export { GlitchPass };

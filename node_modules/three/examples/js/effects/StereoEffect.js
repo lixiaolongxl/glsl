@@ -1,50 +1,51 @@
-( function () {
+/**
+ * @author alteredq / http://alteredqualia.com/
+ * @authod mrdoob / http://mrdoob.com/
+ * @authod arodic / http://aleksandarrodic.com/
+ * @authod fonserbc / http://fonserbc.github.io/
+*/
 
-	class StereoEffect {
+THREE.StereoEffect = function ( renderer ) {
 
-		constructor( renderer ) {
+	var _stereo = new THREE.StereoCamera();
+	_stereo.aspect = 0.5;
+	var size = new THREE.Vector2();
 
-			const _stereo = new THREE.StereoCamera();
+	this.setEyeSeparation = function ( eyeSep ) {
 
-			_stereo.aspect = 0.5;
-			const size = new THREE.Vector2();
+		_stereo.eyeSep = eyeSep;
 
-			this.setEyeSeparation = function ( eyeSep ) {
+	};
 
-				_stereo.eyeSep = eyeSep;
+	this.setSize = function ( width, height ) {
 
-			};
+		renderer.setSize( width, height );
 
-			this.setSize = function ( width, height ) {
+	};
 
-				renderer.setSize( width, height );
+	this.render = function ( scene, camera ) {
 
-			};
+		scene.updateMatrixWorld();
 
-			this.render = function ( scene, camera ) {
+		if ( camera.parent === null ) camera.updateMatrixWorld();
 
-				scene.updateMatrixWorld();
-				if ( camera.parent === null ) camera.updateMatrixWorld();
+		_stereo.update( camera );
 
-				_stereo.update( camera );
+		renderer.getSize( size );
 
-				renderer.getSize( size );
-				if ( renderer.autoClear ) renderer.clear();
-				renderer.setScissorTest( true );
-				renderer.setScissor( 0, 0, size.width / 2, size.height );
-				renderer.setViewport( 0, 0, size.width / 2, size.height );
-				renderer.render( scene, _stereo.cameraL );
-				renderer.setScissor( size.width / 2, 0, size.width / 2, size.height );
-				renderer.setViewport( size.width / 2, 0, size.width / 2, size.height );
-				renderer.render( scene, _stereo.cameraR );
-				renderer.setScissorTest( false );
+		if ( renderer.autoClear ) renderer.clear();
+		renderer.setScissorTest( true );
 
-			};
+		renderer.setScissor( 0, 0, size.width / 2, size.height );
+		renderer.setViewport( 0, 0, size.width / 2, size.height );
+		renderer.render( scene, _stereo.cameraL );
 
-		}
+		renderer.setScissor( size.width / 2, 0, size.width / 2, size.height );
+		renderer.setViewport( size.width / 2, 0, size.width / 2, size.height );
+		renderer.render( scene, _stereo.cameraR );
 
-	}
+		renderer.setScissorTest( false );
 
-	THREE.StereoEffect = StereoEffect;
+	};
 
-} )();
+};

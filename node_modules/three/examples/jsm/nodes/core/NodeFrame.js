@@ -1,14 +1,20 @@
-class NodeFrame {
+/**
+ * @author sunag / http://www.sunag.com.br/
+ */
 
-	constructor( time ) {
+function NodeFrame( time ) {
 
-		this.time = time !== undefined ? time : 0;
+	this.time = time !== undefined ? time : 0;
 
-		this.id = 0;
+	this.id = 0;
 
-	}
+}
 
-	update( delta ) {
+NodeFrame.prototype = {
+
+	constructor: NodeFrame,
+
+	update: function ( delta ) {
 
 		++ this.id;
 
@@ -17,25 +23,25 @@ class NodeFrame {
 
 		return this;
 
-	}
+	},
 
-	setRenderer( renderer ) {
+	setRenderer: function ( renderer ) {
 
 		this.renderer = renderer;
 
 		return this;
 
-	}
+	},
 
-	setRenderTexture( renderTexture ) {
+	setRenderTexture: function ( renderTexture ) {
 
 		this.renderTexture = renderTexture;
 
 		return this;
 
-	}
+	},
 
-	updateNode( node ) {
+	updateNode: function ( node ) {
 
 		if ( node.frameId === this.id ) return this;
 
@@ -47,6 +53,6 @@ class NodeFrame {
 
 	}
 
-}
+};
 
 export { NodeFrame };

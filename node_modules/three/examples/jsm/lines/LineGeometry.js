@@ -1,15 +1,26 @@
-import { LineSegmentsGeometry } from '../lines/LineSegmentsGeometry.js';
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ *
+ */
 
-class LineGeometry extends LineSegmentsGeometry {
 
-	constructor() {
+import { LineSegmentsGeometry } from "../lines/LineSegmentsGeometry.js";
 
-		super();
-		this.type = 'LineGeometry';
+var LineGeometry = function () {
 
-	}
+	LineSegmentsGeometry.call( this );
 
-	setPositions( array ) {
+	this.type = 'LineGeometry';
+
+};
+
+LineGeometry.prototype = Object.assign( Object.create( LineSegmentsGeometry.prototype ), {
+
+	constructor: LineGeometry,
+
+	isLineGeometry: true,
+
+	setPositions: function ( array ) {
 
 		// converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
 
@@ -28,13 +39,13 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		}
 
-		super.setPositions( points );
+		LineSegmentsGeometry.prototype.setPositions.call( this, points );
 
 		return this;
 
-	}
+	},
 
-	setColors( array ) {
+	setColors: function ( array ) {
 
 		// converts [ r1, g1, b1,  r2, g2, b2, ... ] to pairs format
 
@@ -53,24 +64,23 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		}
 
-		super.setColors( colors );
+		LineSegmentsGeometry.prototype.setColors.call( this, colors );
 
 		return this;
 
-	}
+	},
 
-	fromLine( line ) {
+	fromLine: function ( line ) {
 
 		var geometry = line.geometry;
 
 		if ( geometry.isGeometry ) {
 
-			console.error( 'THREE.LineGeometry no longer supports Geometry. Use THREE.BufferGeometry instead.' );
-			return;
+			this.setPositions( geometry.vertices );
 
 		} else if ( geometry.isBufferGeometry ) {
 
-			this.setPositions( geometry.attributes.position.array ); // assumes non-indexed
+			this.setPositions( geometry.position.array ); // assumes non-indexed
 
 		}
 
@@ -78,10 +88,16 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		return this;
 
+	},
+
+	copy: function ( /* source */ ) {
+
+		// todo
+
+		return this;
+
 	}
 
-}
-
-LineGeometry.prototype.isLineGeometry = true;
+} );
 
 export { LineGeometry };

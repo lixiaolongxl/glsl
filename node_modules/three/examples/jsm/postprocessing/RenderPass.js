@@ -1,47 +1,44 @@
-import {
-	Color
-} from 'three';
-import { Pass } from '../postprocessing/Pass.js';
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
 
-class RenderPass extends Pass {
 
-	constructor( scene, camera, overrideMaterial, clearColor, clearAlpha ) {
+import { Pass } from "../postprocessing/Pass.js";
 
-		super();
+var RenderPass = function ( scene, camera, overrideMaterial, clearColor, clearAlpha ) {
 
-		this.scene = scene;
-		this.camera = camera;
+	Pass.call( this );
 
-		this.overrideMaterial = overrideMaterial;
+	this.scene = scene;
+	this.camera = camera;
 
-		this.clearColor = clearColor;
-		this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
+	this.overrideMaterial = overrideMaterial;
 
-		this.clear = true;
-		this.clearDepth = false;
-		this.needsSwap = false;
-		this._oldClearColor = new Color();
+	this.clearColor = clearColor;
+	this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
 
-	}
+	this.clear = true;
+	this.clearDepth = false;
+	this.needsSwap = false;
 
-	render( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+};
 
-		const oldAutoClear = renderer.autoClear;
+RenderPass.prototype = Object.assign( Object.create( Pass.prototype ), {
+
+	constructor: RenderPass,
+
+	render: function ( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+
+		var oldAutoClear = renderer.autoClear;
 		renderer.autoClear = false;
 
-		let oldClearAlpha, oldOverrideMaterial;
+		this.scene.overrideMaterial = this.overrideMaterial;
 
-		if ( this.overrideMaterial !== undefined ) {
-
-			oldOverrideMaterial = this.scene.overrideMaterial;
-
-			this.scene.overrideMaterial = this.overrideMaterial;
-
-		}
+		var oldClearColor, oldClearAlpha;
 
 		if ( this.clearColor ) {
 
-			renderer.getClearColor( this._oldClearColor );
+			oldClearColor = renderer.getClearColor().getHex();
 			oldClearAlpha = renderer.getClearAlpha();
 
 			renderer.setClearColor( this.clearColor, this.clearAlpha );
@@ -62,20 +59,15 @@ class RenderPass extends Pass {
 
 		if ( this.clearColor ) {
 
-			renderer.setClearColor( this._oldClearColor, oldClearAlpha );
+			renderer.setClearColor( oldClearColor, oldClearAlpha );
 
 		}
 
-		if ( this.overrideMaterial !== undefined ) {
-
-			this.scene.overrideMaterial = oldOverrideMaterial;
-
-		}
-
+		this.scene.overrideMaterial = null;
 		renderer.autoClear = oldAutoClear;
 
 	}
 
-}
+} );
 
 export { RenderPass };

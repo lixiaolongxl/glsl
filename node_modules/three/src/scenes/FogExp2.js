@@ -1,23 +1,30 @@
+/**
+ * @author mrdoob / http://mrdoob.com/
+ * @author alteredq / http://alteredqualia.com/
+ */
+
 import { Color } from '../math/Color.js';
 
-class FogExp2 {
+function FogExp2( color, density ) {
 
-	constructor( color, density = 0.00025 ) {
+	this.name = '';
 
-		this.name = '';
+	this.color = new Color( color );
+	this.density = ( density !== undefined ) ? density : 0.00025;
 
-		this.color = new Color( color );
-		this.density = density;
+}
 
-	}
+Object.assign( FogExp2.prototype, {
 
-	clone() {
+	isFogExp2: true,
+
+	clone: function () {
 
 		return new FogExp2( this.color, this.density );
 
-	}
+	},
 
-	toJSON( /* meta */ ) {
+	toJSON: function ( /* meta */ ) {
 
 		return {
 			type: 'FogExp2',
@@ -27,8 +34,6 @@ class FogExp2 {
 
 	}
 
-}
-
-FogExp2.prototype.isFogExp2 = true;
+} );
 
 export { FogExp2 };

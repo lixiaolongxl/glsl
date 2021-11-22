@@ -1,82 +1,98 @@
-( function () {
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ *
+ */
 
-	class LineGeometry extends THREE.LineSegmentsGeometry {
+THREE.LineGeometry = function () {
 
-		constructor() {
+	THREE.LineSegmentsGeometry.call( this );
 
-			super();
-			this.type = 'LineGeometry';
+	this.type = 'LineGeometry';
 
-		}
+};
 
-		setPositions( array ) {
+THREE.LineGeometry.prototype = Object.assign( Object.create( THREE.LineSegmentsGeometry.prototype ), {
 
-			// converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
-			var length = array.length - 3;
-			var points = new Float32Array( 2 * length );
+	constructor: THREE.LineGeometry,
 
-			for ( var i = 0; i < length; i += 3 ) {
+	isLineGeometry: true,
 
-				points[ 2 * i ] = array[ i ];
-				points[ 2 * i + 1 ] = array[ i + 1 ];
-				points[ 2 * i + 2 ] = array[ i + 2 ];
-				points[ 2 * i + 3 ] = array[ i + 3 ];
-				points[ 2 * i + 4 ] = array[ i + 4 ];
-				points[ 2 * i + 5 ] = array[ i + 5 ];
+	setPositions: function ( array ) {
 
-			}
+		// converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
 
-			super.setPositions( points );
-			return this;
+		var length = array.length - 3;
+		var points = new Float32Array( 2 * length );
 
-		}
+		for ( var i = 0; i < length; i += 3 ) {
 
-		setColors( array ) {
+			points[ 2 * i ] = array[ i ];
+			points[ 2 * i + 1 ] = array[ i + 1 ];
+			points[ 2 * i + 2 ] = array[ i + 2 ];
 
-			// converts [ r1, g1, b1,  r2, g2, b2, ... ] to pairs format
-			var length = array.length - 3;
-			var colors = new Float32Array( 2 * length );
-
-			for ( var i = 0; i < length; i += 3 ) {
-
-				colors[ 2 * i ] = array[ i ];
-				colors[ 2 * i + 1 ] = array[ i + 1 ];
-				colors[ 2 * i + 2 ] = array[ i + 2 ];
-				colors[ 2 * i + 3 ] = array[ i + 3 ];
-				colors[ 2 * i + 4 ] = array[ i + 4 ];
-				colors[ 2 * i + 5 ] = array[ i + 5 ];
-
-			}
-
-			super.setColors( colors );
-			return this;
+			points[ 2 * i + 3 ] = array[ i + 3 ];
+			points[ 2 * i + 4 ] = array[ i + 4 ];
+			points[ 2 * i + 5 ] = array[ i + 5 ];
 
 		}
 
-		fromLine( line ) {
+		THREE.LineSegmentsGeometry.prototype.setPositions.call( this, points );
 
-			var geometry = line.geometry;
+		return this;
 
-			if ( geometry.isGeometry ) {
+	},
 
-				console.error( 'THREE.LineGeometry no longer supports Geometry. Use THREE.BufferGeometry instead.' );
-				return;
+	setColors: function ( array ) {
 
-			} else if ( geometry.isBufferGeometry ) {
+		// converts [ r1, g1, b1,  r2, g2, b2, ... ] to pairs format
 
-				this.setPositions( geometry.attributes.position.array ); // assumes non-indexed
+		var length = array.length - 3;
+		var colors = new Float32Array( 2 * length );
 
-			} // set colors, maybe
+		for ( var i = 0; i < length; i += 3 ) {
 
+			colors[ 2 * i ] = array[ i ];
+			colors[ 2 * i + 1 ] = array[ i + 1 ];
+			colors[ 2 * i + 2 ] = array[ i + 2 ];
 
-			return this;
+			colors[ 2 * i + 3 ] = array[ i + 3 ];
+			colors[ 2 * i + 4 ] = array[ i + 4 ];
+			colors[ 2 * i + 5 ] = array[ i + 5 ];
 
 		}
+
+		THREE.LineSegmentsGeometry.prototype.setColors.call( this, colors );
+
+		return this;
+
+	},
+
+	fromLine: function ( line ) {
+
+		var geometry = line.geometry;
+
+		if ( geometry.isGeometry ) {
+
+			this.setPositions( geometry.vertices );
+
+		} else if ( geometry.isBufferGeometry ) {
+
+			this.setPositions( geometry.position.array ); // assumes non-indexed
+
+		}
+
+		// set colors, maybe
+
+		return this;
+
+	},
+
+	copy: function ( /* source */ ) {
+
+		// todo
+
+		return this;
 
 	}
 
-	LineGeometry.prototype.isLineGeometry = true;
-
-	THREE.LineGeometry = LineGeometry;
-
-} )();
+} );

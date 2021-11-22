@@ -1,37 +1,45 @@
 import { BufferGeometry } from './BufferGeometry.js';
 
-class InstancedBufferGeometry extends BufferGeometry {
+/**
+ * @author benaadams / https://twitter.com/ben_a_adams
+ */
 
-	constructor() {
+function InstancedBufferGeometry() {
 
-		super();
+	BufferGeometry.call( this );
 
-		this.type = 'InstancedBufferGeometry';
-		this.instanceCount = Infinity;
+	this.type = 'InstancedBufferGeometry';
+	this.maxInstancedCount = undefined;
 
-	}
+}
 
-	copy( source ) {
+InstancedBufferGeometry.prototype = Object.assign( Object.create( BufferGeometry.prototype ), {
 
-		super.copy( source );
+	constructor: InstancedBufferGeometry,
 
-		this.instanceCount = source.instanceCount;
+	isInstancedBufferGeometry: true,
+
+	copy: function ( source ) {
+
+		BufferGeometry.prototype.copy.call( this, source );
+
+		this.maxInstancedCount = source.maxInstancedCount;
 
 		return this;
 
-	}
+	},
 
-	clone() {
+	clone: function () {
 
 		return new this.constructor().copy( this );
 
-	}
+	},
 
-	toJSON() {
+	toJSON: function () {
 
-		const data = super.toJSON( this );
+		var data = BufferGeometry.prototype.toJSON.call( this );
 
-		data.instanceCount = this.instanceCount;
+		data.maxInstancedCount = this.maxInstancedCount;
 
 		data.isInstancedBufferGeometry = true;
 
@@ -39,8 +47,6 @@ class InstancedBufferGeometry extends BufferGeometry {
 
 	}
 
-}
-
-InstancedBufferGeometry.prototype.isInstancedBufferGeometry = true;
+} );
 
 export { InstancedBufferGeometry };

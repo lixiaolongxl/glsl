@@ -1,47 +1,47 @@
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ *
+ * A LightProbe is a source of indirect-diffuse light
+ */
+
 import { SphericalHarmonics3 } from '../math/SphericalHarmonics3.js';
 import { Light } from './Light.js';
 
-class LightProbe extends Light {
+function LightProbe( sh, intensity ) {
 
-	constructor( sh = new SphericalHarmonics3(), intensity = 1 ) {
+	Light.call( this, undefined, intensity );
 
-		super( undefined, intensity );
+	this.sh = ( sh !== undefined ) ? sh : new SphericalHarmonics3();
 
-		this.sh = sh;
+}
 
-	}
+LightProbe.prototype = Object.assign( Object.create( Light.prototype ), {
 
-	copy( source ) {
+	constructor: LightProbe,
 
-		super.copy( source );
+	isLightProbe: true,
+
+	copy: function ( source ) {
+
+		Light.prototype.copy.call( this, source );
 
 		this.sh.copy( source.sh );
+		this.intensity = source.intensity;
 
 		return this;
 
-	}
+	},
 
-	fromJSON( json ) {
+	toJSON: function ( meta ) {
 
-		this.intensity = json.intensity; // TODO: Move this bit to Light.fromJSON();
-		this.sh.fromArray( json.sh );
+		var data = Light.prototype.toJSON.call( this, meta );
 
-		return this;
-
-	}
-
-	toJSON( meta ) {
-
-		const data = super.toJSON( meta );
-
-		data.object.sh = this.sh.toArray();
+		// data.sh = this.sh.toArray(); // todo
 
 		return data;
 
 	}
 
-}
-
-LightProbe.prototype.isLightProbe = true;
+} );
 
 export { LightProbe };

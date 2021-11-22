@@ -1,10 +1,14 @@
+/**
+ * @author HypnosNova / https://www.threejs.org.cn/gallery
+ */
+
 import {
 	Vector2
-} from 'three';
+} from "../../../build/three.module.js";
 
-class SelectionHelper {
+var SelectionHelper = ( function () {
 
-	constructor( selectionBox, renderer, cssClassName ) {
+	function SelectionHelper( selectionBox, renderer, cssClassName ) {
 
 		this.element = document.createElement( 'div' );
 		this.element.classList.add( cssClassName );
@@ -18,14 +22,14 @@ class SelectionHelper {
 
 		this.isDown = false;
 
-		this.renderer.domElement.addEventListener( 'pointerdown', function ( event ) {
+		this.renderer.domElement.addEventListener( 'mousedown', function ( event ) {
 
 			this.isDown = true;
 			this.onSelectStart( event );
 
-		}.bind( this ) );
+		}.bind( this ), false );
 
-		this.renderer.domElement.addEventListener( 'pointermove', function ( event ) {
+		this.renderer.domElement.addEventListener( 'mousemove', function ( event ) {
 
 			if ( this.isDown ) {
 
@@ -33,18 +37,18 @@ class SelectionHelper {
 
 			}
 
-		}.bind( this ) );
+		}.bind( this ), false );
 
-		this.renderer.domElement.addEventListener( 'pointerup', function ( event ) {
+		this.renderer.domElement.addEventListener( 'mouseup', function ( event ) {
 
 			this.isDown = false;
 			this.onSelectOver( event );
 
-		}.bind( this ) );
+		}.bind( this ), false );
 
 	}
 
-	onSelectStart( event ) {
+	SelectionHelper.prototype.onSelectStart = function ( event ) {
 
 		this.renderer.domElement.parentElement.appendChild( this.element );
 
@@ -56,9 +60,9 @@ class SelectionHelper {
 		this.startPoint.x = event.clientX;
 		this.startPoint.y = event.clientY;
 
-	}
+	};
 
-	onSelectMove( event ) {
+	SelectionHelper.prototype.onSelectMove = function ( event ) {
 
 		this.pointBottomRight.x = Math.max( this.startPoint.x, event.clientX );
 		this.pointBottomRight.y = Math.max( this.startPoint.y, event.clientY );
@@ -70,14 +74,16 @@ class SelectionHelper {
 		this.element.style.width = ( this.pointBottomRight.x - this.pointTopLeft.x ) + 'px';
 		this.element.style.height = ( this.pointBottomRight.y - this.pointTopLeft.y ) + 'px';
 
-	}
+	};
 
-	onSelectOver() {
+	SelectionHelper.prototype.onSelectOver = function () {
 
 		this.element.parentElement.removeChild( this.element );
 
-	}
+	};
 
-}
+	return SelectionHelper;
+
+} )();
 
 export { SelectionHelper };
