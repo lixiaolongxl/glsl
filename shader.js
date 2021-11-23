@@ -7,6 +7,9 @@ const Random = require("canvas-sketch-util/random");
 const canvasSketch = require("canvas-sketch");
 const glsl = require("glslify");
 const settings = {
+    duration:5,
+    dimensions:[1080,1080],
+    fps:60,
   // Make the loop animated
   animate: true,
   // Get a WebGL canvas rather than 2D
@@ -52,7 +55,8 @@ const sketch = ({ context }) => {
     }
   `;
   const fragmentShader =glsl( /* glsl */`
-  #pragma glslify: noise = require(glsl-noise/simplex/3d) 
+  #pragma glslify: noise = require('glsl-noise/simplex/3d');
+  #pragma glslify: aastep = require('glsl-aastep');
   varying vec2 vUv;
   uniform vec3 color;
   uniform float time;
@@ -76,7 +80,8 @@ const sketch = ({ context }) => {
           float curDist = distance(vPosition, point);
           dist = min(curDist, dist);
         }
-        float mask = step(0.15,dist);
+        float mask = aastep(0.15,dist);
+        mask = 1.0 - mask;
         
         vec3 fragColor = mix(color, vec3(1.0), mask);
         float rim = sphereRim(vPosition);
@@ -91,6 +96,9 @@ const sketch = ({ context }) => {
     fragmentShader,
     defines:{
         POINT_COUNT:points.length
+    },
+    extensions:{
+        derivatives:true,
     },
     uniforms:{
     points:{value:points},
@@ -114,7 +122,8 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
     // Update & render your scene here
-    render({ time }) {
+    render({ time,playhead }) {
+      mesh.rotation.y = playhead*Math.PI*2;
       material.uniforms.time.value = time;
       // material.wireframe = true;
       controls.update();

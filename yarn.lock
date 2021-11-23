@@ -169,6 +169,11 @@ get-intrinsic@^1.0.2:
     has "^1.0.3"
     has-symbols "^1.0.1"
 
+glsl-aastep@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/glsl-aastep/download/glsl-aastep-1.0.1.tgz#eeaf16961e472c9b8b3d965d080ab8ec1d4c6bb8"
+  integrity sha1-7q8Wlh5HLJuLPZZdCAq47B1Ma7g=
+
 glsl-noise@^0.0.0:
   version "0.0.0"
   resolved "https://registry.npm.taobao.org/glsl-noise/download/glsl-noise-0.0.0.tgz#367745f3a33382c0eeec4cb54b7e99cfc1d7670b"
