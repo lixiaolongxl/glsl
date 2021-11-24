@@ -13,7 +13,7 @@
     "canvas-sketch": "^0.7.4",
     "glsl-aastep": "^1.0.1",
     "glsl-noise": "^0.0.0",
-    "three": "0.107"
+    "three": "0.133.0"
   },
   "devDependencies": {
     "canvas-sketch-util": "^1.10.0"

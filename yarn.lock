@@ -356,10 +356,10 @@ svg-path-contours@^2.0.0:
     normalize-svg-path "^0.1.0"
     vec2-copy "^1.0.0"
 
-three@0.107:
-  version "0.107.0"
-  resolved "https://registry.npmmirror.com/three/download/three-0.107.0.tgz?cache=0&sync_timestamp=1636706775671&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fthree%2Fdownload%2Fthree-0.107.0.tgz#0c862c348d61bd3f22058e01f5e771c1294315a1"
-  integrity sha1-DIYsNI1hvT8iBY4B9edxwSlDFaE=
+three@0.133.0:
+  version "0.133.0"
+  resolved "https://registry.npmmirror.com/three/download/three-0.133.0.tgz#41427306c731a89407221b7be48c7a63580400e7"
+  integrity sha1-QUJzBscxqJQHIht75Ix6Y1gEAOc=
 
 vec2-copy@^1.0.0:
   version "1.0.0"
