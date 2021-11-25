@@ -60,7 +60,7 @@ const sketch = ({ context }) => {
     spotLight.shadow.camera.far = 200;
     spotLight.shadow.focus = 2;
     scene.add( spotLight );
-    const targetObject = new THREE.Object3D();
+    const targetObject = new THREE.Object3D(10,0,0);
 	scene.add(targetObject);
 
 	spotLight.target = targetObject;
@@ -89,7 +89,7 @@ const sketch = ({ context }) => {
 				geometry = new THREE.CylinderGeometry( 5, 5, 2, 32, 1, false );
 
 				mesh = new THREE.Mesh( geometry, material );
-				mesh.position.set( 0, 5, 0 );
+				mesh.position.set( 0, 50, 0 );
 				mesh.castShadow = true;
 				scene.add( mesh );    
 
@@ -107,8 +107,9 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
     // Update & render your scene here
+    
     render({ time,playhead }) {
-      
+        targetObject.position.z = time*2;
       // material.wireframe = true;
       shadowCameraHelper.update();
       lightHelper.update();
