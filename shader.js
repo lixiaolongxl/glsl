@@ -86,17 +86,23 @@ const sketch = ({ context }) => {
                 //     color: 0xff0000,
                 //     size: 5.0 //点对象像素尺寸
                 //   }); //材质对象
-				// geometry = new THREE.CylinderGeometry( 5, 5, 2, 32, 1, false );
-                geometry = new THREE.BoxGeometry(10, 10, 10); //创建一个立方体几何对象Geometry
+				geometry = new THREE.CylinderGeometry( 5, 5, 2, 32, 1, false );
+                // geometry = new THREE.BoxGeometry(10, 10, 10); //创建一个立方体几何对象Geometry
 				mesh = new THREE.Mesh( geometry, material );
 				mesh.position.set( 0, 0, 0 );
 				mesh.castShadow = true;
 
-                const edges = new THREE.EdgesGeometry( geometry );
+                // const wireframe = new THREE.WireframeGeometry( geometry );
+                const wireframe = new THREE.EdgesGeometry( geometry );
+                // EdgesGeometry
                 let edgesMtl =  new THREE.LineBasicMaterial({color: 0xff0000});
+                // const line = new THREE.LineSegments( wireframe );
+// line.material.depthTest = true;
+// line.material.opacity = 1;
+// line.material.transparent = true;
+
                 
-                
-                const line = new THREE.LineSegments(edges,edgesMtl)
+                const line = new THREE.LineSegments(wireframe,edgesMtl)
                 
 				scene.add( mesh );    
                 scene.add( line );
